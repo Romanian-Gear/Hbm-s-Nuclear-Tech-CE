@@ -171,6 +171,9 @@ public class ModBlocks {
 
 	public static final Block lamp_demon = new DemonLamp(SoundType.METAL, "lamp_demon").setCreativeTab(MainRegistry.blockTab).setLightLevel(1F).setHardness(3.0F);
 
+    public static final Block lantern = new BlockLantern("lantern").setSoundType(SoundType.METAL).setCreativeTab(MainRegistry.blockTab).setLightLevel(1F).setHardness(3.0F);
+    public static final Block lantern_behemoth = new BlockLanternBehemoth("lantern_behemoth").setSoundType(SoundType.METAL).setCreativeTab(null).setHardness(3.0F);
+
 	public static final Block block_scrap = new BlockFallingBase(Material.SAND, "block_scrap", SoundType.GROUND).setCreativeTab(MainRegistry.blockTab).setHardness(2.5F).setResistance(5.0F);
 	public static final Block block_electrical_scrap = new BlockFallingBase(Material.IRON, "block_electrical_scrap", SoundType.METAL).setCreativeTab(MainRegistry.blockTab).setHardness(2.5F).setResistance(5.0F);
 
@@ -445,6 +448,9 @@ public class ModBlocks {
 	public static final Block deco_pipe_quad_green_rusted = new BlockPipe(Material.IRON, "deco_pipe_quad_green_rusted").setSoundType(ModSoundTypes.grate).setCreativeTab(MainRegistry.blockTab).setHardness(2.0F).setResistance(5.0F);
 	public static final Block deco_pipe_quad_red = new BlockPipe(Material.IRON, "deco_pipe_quad_red").setSoundType(ModSoundTypes.grate).setCreativeTab(MainRegistry.blockTab).setHardness(2.0F).setResistance(5.0F);
 	public static final Block deco_pipe_quad_marked = new BlockPipe(Material.IRON, "deco_pipe_quad_marked").setSoundType(ModSoundTypes.grate).setCreativeTab(MainRegistry.blockTab).setHardness(2.0F).setResistance(5.0F);
+
+    public static final Block glyphid_base = new BlockGlyphid(Material.CORAL, "glyphid_base").setSoundType(SoundType.CLOTH).setHardness(0.5F);
+    public static final Block glyphid_spawner = new BlockGlyphidSpawner(Material.CORAL, "glyphid_spawner").setSoundType(SoundType.CLOTH).setHardness(0.5F);
 
 	//Radiation blocks
 
@@ -1156,10 +1162,10 @@ public class ModBlocks {
 	public static final Block pwr_block = new BlockPWR(Material.IRON, "pwr_block").setHardness(5.0F).setResistance(10.0F).setCreativeTab(null);
 
 	//Fusion fellas
-	public static final Block fusion_conductor = new BlockReactor(Material.IRON, "fusion_conductor").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
-	public static final Block fusion_center = new BlockReactor(Material.IRON, "fusion_center").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
-	public static final Block fusion_motor = new BlockReactor(Material.IRON, "fusion_motor").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
-	public static final Block fusion_heater = new BlockReactor(Material.IRON, "fusion_heater").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
+	public static final Block fusion_conductor = new BlockToolConversion(Material.IRON, "fusion_conductor").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
+	public static final Block fusion_center = new BlockBase(Material.IRON, "fusion_center").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
+	public static final Block fusion_motor = new BlockBase(Material.IRON, "fusion_motor").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
+	public static final Block fusion_heater = new BlockBase(Material.IRON, "fusion_heater").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 	public static final Block fusion_hatch = new BlockBase(Material.IRON, "fusion_hatch").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 	public static final Block fusion_core = new BlockBase(Material.IRON, "fusion_core_block").setHardness(5.0F).setResistance(10.0F).setCreativeTab(MainRegistry.machineTab);
 	public static final Block plasma = new BlockPlasma(Material.IRON, "plasma").setHardness(5.0F).setResistance(6000.0F).setLightLevel(1.0F).setCreativeTab(MainRegistry.machineTab);
