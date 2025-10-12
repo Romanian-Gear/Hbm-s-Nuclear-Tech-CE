@@ -837,6 +837,38 @@ public class Orchestras {
         }
     };
 
+    public static BiConsumer<ItemStack, ItemGunBaseNT.LambdaContext> ORCHESTRA_DRILL = (stack, ctx) -> {
+        EntityLivingBase entity = ctx.entity;
+        HbmAnimationsSedna.AnimType type = ItemGunBaseNT.getLastAnim(stack, ctx.configIndex);
+        int timer = ItemGunBaseNT.getAnimTimer(stack, ctx.configIndex);
+
+        if(type == HbmAnimationsSedna.AnimType.CYCLE && entity.world.isRemote) {
+            AudioWrapper runningAudio = ItemGunBaseNT.loopedSounds.get(entity);
+
+            if(timer < 5) {
+                //start sound
+                if(runningAudio == null || !runningAudio.isPlaying()) {
+                    AudioWrapper audio = MainRegistry.proxy.getLoopedSound(HBMSoundHandler.flameLoop, SoundCategory.PLAYERS, (float) entity.posX, (float) entity.posY, (float) entity.posZ, 1F, 15F);
+                    ItemGunBaseNT.loopedSounds.put(entity, audio);
+                    audio.startSound();
+                }
+                //keepalive
+                if(runningAudio != null && runningAudio.isPlaying()) {
+                    runningAudio.keepAlive();
+                    runningAudio.updatePosition((float) entity.posX, (float) entity.posY, (float) entity.posZ);
+                }
+            } else {
+                //stop sound due to timeout
+                if(runningAudio != null && runningAudio.isPlaying()) runningAudio.stopSound();
+            }
+        }
+        //stop sound due to state change
+        if(type != HbmAnimationsSedna.AnimType.CYCLE && entity.world.isRemote) {
+            AudioWrapper runningAudio = ItemGunBaseNT.loopedSounds.get(entity);
+            if(runningAudio != null && runningAudio.isPlaying()) runningAudio.stopSound();
+        }
+    };
+
     public static BiConsumer<ItemStack, ItemGunBaseNT.LambdaContext> ORCHESTRA_AMAT = (stack, ctx) -> {
         EntityLivingBase entity = ctx.entity;
         if(entity.world.isRemote) return;
