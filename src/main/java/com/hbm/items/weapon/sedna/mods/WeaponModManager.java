@@ -134,6 +134,15 @@ public class WeaponModManager {
         new WeaponModDefinition(GunFactory.EnumModSpecial.LAS_SHOTGUN).addMod(new Item[] {ModItems.gun_lasrifle}, new WeaponModLasShotgun(ID_LAS_SHOTGUN));
         new WeaponModDefinition(GunFactory.EnumModSpecial.LAS_CAPACITOR).addMod(new Item[] {ModItems.gun_lasrifle}, new WeaponModLasCapacitor(ID_LAS_CAPACITOR));
         new WeaponModDefinition(GunFactory.EnumModSpecial.LAS_AUTO).addMod(new Item[] {ModItems.gun_lasrifle}, new WeaponModLasAuto(ID_LAS_AUTO));
+        new WeaponModDefinition(GunFactory.EnumModSpecial.DRILL_HSS).addMod(new Item[] {ModItems.gun_drill}, new WeaponModDrill(ID_DRILL_HSS).damage(1.25F).dt(3F).pierce(0.15F).harvest(Item.ToolMaterial.DIAMOND.ordinal()));
+        new WeaponModDefinition(GunFactory.EnumModSpecial.DRILL_WEAPONSTEEL).addMod(new Item[] {ModItems.gun_drill}, new WeaponModDrill(ID_DRILL_WSTEEL).damage(1.5F).dt(5F).pierce(0.2F).aoe(2).harvest(Item.ToolMaterial.DIAMOND.ordinal()));
+        new WeaponModDefinition(GunFactory.EnumModSpecial.DRILL_TCALLOY).addMod(new Item[] {ModItems.gun_drill}, new WeaponModDrill(ID_DRILL_TCALLOY).damage(2F).dt(7.5F).pierce(0.2F).reach(1.5).aoe(2).harvest(Item.ToolMaterial.DIAMOND.ordinal() + 1));
+        new WeaponModDefinition(GunFactory.EnumModSpecial.DRILL_SATURNITE).addMod(new Item[] {ModItems.gun_drill}, new WeaponModDrill(ID_DRILL_SATURN).damage(3F).dt(10F).pierce(0.25F).reach(2).aoe(2).harvest(Item.ToolMaterial.DIAMOND.ordinal() + 2));
+        new WeaponModDefinition(GunFactory.EnumModSpecial.ENGINE_DIESEL).addMod(new Item[] {ModItems.gun_drill}, new WeaponModEngine(ID_ENGINE_DIESEL).mag(WeaponModEngine.ENGINE_DIESEL).delay(15));
+        new WeaponModDefinition(GunFactory.EnumModSpecial.ENGINE_AVIATION).addMod(new Item[] {ModItems.gun_drill}, new WeaponModEngine(ID_ENGINE_AVIATION).mag(WeaponModEngine.ENGINE_AVIATION).delay(10));
+        new WeaponModDefinition(GunFactory.EnumModSpecial.ENGINE_ELECTRIC).addMod(new Item[] {ModItems.gun_drill}, new WeaponModEngine(ID_ENGINE_ELECTRIC).mag(WeaponModEngine.ENGINE_ELECTRIC).delay(15));
+        new WeaponModDefinition(GunFactory.EnumModSpecial.ENGINE_TURBO).addMod(new Item[] {ModItems.gun_drill}, new WeaponModEngine(ID_ENGINE_TURBO).mag(WeaponModEngine.ENGINE_TURBO).delay(2));
+
 
         BulletConfig[] p9 = new BulletConfig[] {XFactory9mm.p9_sp, XFactory9mm.p9_fmj, XFactory9mm.p9_jhp, XFactory9mm.p9_ap};
         BulletConfig[] p45 = new BulletConfig[] {XFactory45.p45_sp, XFactory45.p45_fmj, XFactory45.p45_jhp, XFactory45.p45_ap, XFactory45.p45_du};
@@ -187,6 +196,14 @@ public class WeaponModManager {
     public static final int ID_LAS_CAPACITOR = 217;
     public static final int ID_LAS_AUTO = 218;
     public static final int ID_CARBINE_BAYONET = 219;
+    public static final int ID_DRILL_HSS = 220;
+    public static final int ID_DRILL_WSTEEL = 221;
+    public static final int ID_DRILL_TCALLOY = 222;
+    public static final int ID_DRILL_SATURN = 223;
+    public static final int ID_ENGINE_DIESEL = 224;
+    public static final int ID_ENGINE_AVIATION = 225;
+    public static final int ID_ENGINE_ELECTRIC = 226;
+    public static final int ID_ENGINE_TURBO = 227;
 
     public static ItemStack[] getUpgradeItems(ItemStack stack, int cfg) {
         if(!stack.hasTagCompound()) return new ItemStack[0];
