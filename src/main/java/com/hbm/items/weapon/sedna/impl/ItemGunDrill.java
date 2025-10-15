@@ -14,8 +14,8 @@ import net.minecraft.item.ItemStack;
 
 public class ItemGunDrill extends ItemGunBaseNT implements IFillableItem, IBatteryItem {
 
-    public ItemGunDrill(WeaponQuality quality, GunConfig... cfg) {
-        super(quality, cfg);
+    public ItemGunDrill(WeaponQuality quality, String s, GunConfig... cfg) {
+        super(quality, s, cfg);
     }
 
     public int getHarvestLevel(ItemStack stack, String toolClass) {
@@ -70,6 +70,7 @@ public class ItemGunDrill extends ItemGunBaseNT implements IFillableItem, IBatte
     }
 
     // TBI
+    // Still waiting for bobcat to finish this - SilentYeti
     @Override public void chargeBattery(ItemStack stack, long i) { }
     @Override public void setCharge(ItemStack stack, long i) { }
     @Override public void dischargeBattery(ItemStack stack, long i) { }

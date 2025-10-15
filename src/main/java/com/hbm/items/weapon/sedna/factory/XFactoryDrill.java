@@ -10,7 +10,13 @@ import com.hbm.items.weapon.sedna.impl.ItemGunDrill;
 import com.hbm.items.weapon.sedna.mags.IMagazine;
 import com.hbm.items.weapon.sedna.mags.MagazineFluid;
 import com.hbm.items.weapon.sedna.mods.WeaponModManager;
+import com.hbm.render.anim.BusAnimation;
+import com.hbm.render.anim.BusAnimationSequence;
+import com.hbm.render.anim.HbmAnimations;
+import com.hbm.render.anim.sedna.BusAnimationKeyframeSedna;
 import com.hbm.render.anim.sedna.BusAnimationSedna;
+import com.hbm.render.anim.sedna.BusAnimationSequenceSedna;
+import com.hbm.render.anim.sedna.HbmAnimationsSedna;
 import com.hbm.render.misc.RenderScreenOverlay;
 import com.hbm.util.EntityDamageUtil;
 import net.minecraft.block.Block;
@@ -22,11 +28,13 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.SPacketEffect;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 public class XFactoryDrill {
 
@@ -38,16 +46,16 @@ public class XFactoryDrill {
 
     public static void init() {
 
-        ModItems.gun_drill = new ItemGunDrill(ItemGunBaseNT.WeaponQuality.UTILITY, new GunConfig()
+        ModItems.gun_drill = new ItemGunDrill(ItemGunBaseNT.WeaponQuality.UTILITY, "gun_drill", new GunConfig()
                 .dura(3_000).draw(10).inspect(55).hideCrosshair(false).crosshair(RenderScreenOverlay.Crosshair.L_CIRCUMFLEX)
                 .rec(new Receiver(0)
                         .dmg(10F).delay(20).auto(true).jam(0)
                         .mag(new MagazineFluid(0, 4_000, Fluids.GASOLINE, Fluids.GASOLINE_LEADED, Fluids.COALGAS, Fluids.COALGAS_LEADED))
                         .offset(1, -0.0625 * 2.5, -0.25D)
                         .canFire(Lego.LAMBDA_STANDARD_CAN_FIRE).fire(LAMBDA_DRILL_FIRE))
-                        .setupStandardFire())
-                .pp(Lego.LAMBDA_STANDARD_CLICK_PRIMARY).pr(Lego.LAMBDA_STANDARD_RELOAD).decider(GunStateDecider.LAMBDA_STANDARD_DECIDER);
-                //.anim(LAMBDA_CT_ANIMS).orchestra(Orchestras.ORCHESTRA_DRILL)
+                .pp(Lego.LAMBDA_STANDARD_CLICK_PRIMARY).pr(Lego.LAMBDA_STANDARD_RELOAD).decider(GunStateDecider.LAMBDA_STANDARD_DECIDER)
+                .anim(LAMBDA_DRILL_ANIMS)
+        );
     }
 
     public static BiConsumer<ItemStack, ItemGunBaseNT.LambdaContext> LAMBDA_DRILL_FIRE = (stack, ctx) -> {
@@ -99,7 +107,16 @@ public class XFactoryDrill {
                 || block.getBlockHardness(state, world, pos) == -1.0F
                 || block.getBlockHardness(state, world, pos) == 0.0F)
         {
-            world.playSound(null, pos, block.getSoundType(state, world, pos, player).getBreakSound(), block.getSoundType(state, world, pos, player).getVolume(), 0.8F + world.rand.nextFloat() * 0.6F);
+            world.playSound(
+                    null,
+                    pos.getX() + 0.5D,
+                    pos.getY() + 0.5D,
+                    pos.getZ() + 0.5D,
+                    block.getSoundType(state, world, pos, player).getBreakSound(),
+                    SoundCategory.BLOCKS,
+                    block.getSoundType(state, world, pos, player).getVolume(),
+                    0.8F + world.rand.nextFloat() * 0.6F
+            );
             return;
         }
 
@@ -117,4 +134,57 @@ public class XFactoryDrill {
     public static float getModdablePiercing(ItemStack stack, float base) {		return WeaponModManager.eval(base, stack, F_PIERCE, ModItems.gun_drill, 0); }
     public static int getModdableAoE(ItemStack stack, int base) {				return WeaponModManager.eval(base, stack, I_AOE, ModItems.gun_drill, 0); }
     public static int getModdableHarvestLevel(ItemStack stack, int base) {		return WeaponModManager.eval(base, stack, I_HARVEST, ModItems.gun_drill, 0); }
-}
+
+    @SuppressWarnings("incomplete-switch")
+    public static final BiFunction<ItemStack, HbmAnimationsSedna.AnimType, BusAnimationSedna> LAMBDA_DRILL_ANIMS = (stack, type) -> {
+        switch (type) {
+
+            case EQUIP:
+                return new BusAnimationSedna()
+                        .addBus("EQUIP", new BusAnimationSequenceSedna()
+                                .setPos(-1, 0, 0)
+                                .addPos(0, 0, 0, 750, BusAnimationKeyframeSedna.IType.SIN_DOWN)
+                        );
+
+            case CYCLE: {
+                double deploy = HbmAnimationsSedna.getRelevantTransformation("DEPLOY")[0];
+                double spin = HbmAnimationsSedna.getRelevantTransformation("SPIN")[2] % 360;
+
+                return new BusAnimationSedna()
+                        .addBus("DEPLOY", new BusAnimationSequenceSedna()
+                                .setPos(deploy, 0, 0)
+                                .addPos(1, 0, 0, (int) (500 * (1 - deploy)), BusAnimationKeyframeSedna.IType.SIN_FULL)
+                                .hold(1000)
+                                .addPos(0, 0, 0, 500, BusAnimationKeyframeSedna.IType.SIN_FULL)
+                        )
+                        .addBus("SPIN", new BusAnimationSequenceSedna()
+                                .setPos(spin, 0, 0)
+                                .addPos(spin + 360 * 1.5, 0, 0, 1500)
+                                .addPos(spin + 360 * 2, 0, 0, 750, BusAnimationKeyframeSedna.IType.SIN_DOWN)
+                        );
+            }
+
+            case CYCLE_DRY:
+                return new BusAnimationSedna()
+                        .addBus("DEPLOY", new BusAnimationSequenceSedna()
+                                .addPos(0.25, 0, 0, 250, BusAnimationKeyframeSedna.IType.SIN_FULL)
+                                .addPos(0, 0, 0, 250, BusAnimationKeyframeSedna.IType.SIN_FULL)
+                        )
+                        .addBus("SPIN", new BusAnimationSequenceSedna()
+                                .addPos(360 * 1, 0, 0, 1500, BusAnimationKeyframeSedna.IType.SIN_DOWN)
+                        );
+
+            case INSPECT:
+                return new BusAnimationSedna()
+                        .addBus("LIFT", new BusAnimationSequenceSedna()
+                                .addPos(-45, 0, 0, 500, BusAnimationKeyframeSedna.IType.SIN_FULL)
+                                .hold(1000)
+                                .addPos(0, 0, 0, 500, BusAnimationKeyframeSedna.IType.SIN_DOWN)
+                        );
+
+            default:
+                return null;
+        }
+    };
+
+    }
