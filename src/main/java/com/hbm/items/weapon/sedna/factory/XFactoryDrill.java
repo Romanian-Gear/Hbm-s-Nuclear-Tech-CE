@@ -69,7 +69,10 @@ public class XFactoryDrill {
 
     public static void doStandardFire(ItemStack stack, ItemGunBaseNT.LambdaContext ctx, boolean calcWear) {
         EntityPlayer player = ctx.getPlayer();
+        int index = ctx.configIndex;
         if (player == null) return;
+
+        ItemGunBaseNT.playAnimation(player, stack, HbmAnimationsSedna.AnimType.CYCLE, ctx.configIndex);
 
         Receiver primary = ctx.config.getReceivers(stack)[0];
         IMagazine mag = primary.getMagazine(stack);
@@ -77,7 +80,7 @@ public class XFactoryDrill {
         RayTraceResult mop = EntityDamageUtil.getMouseOver(ctx.getPlayer(), getModdableReach(stack, 5.0D));
         if(mop != null) {
             if(mop.typeOfHit == mop.typeOfHit.ENTITY) {
-                float damage = 5.0F;
+                float damage = primary.getBaseDamage(stack);
                 if(mop.entityHit instanceof EntityLivingBase) {
                     EntityDamageUtil.attackEntityFromNT((EntityLivingBase) mop.entityHit, DamageSource.causePlayerDamage(ctx.getPlayer()), damage, true, true, 0.1F, getModdableDTNegation(stack, 2F), getModdablePiercing(stack, 0.15F));
                 } else {
@@ -86,7 +89,7 @@ public class XFactoryDrill {
             }
             if(player != null && mop.typeOfHit == mop.typeOfHit.BLOCK) {
 
-                int aoe = getModdableAoE(stack, 1);
+                int aoe = player.isSneaking() ? 0 : getModdableAoE(stack, 1);
                 for(int i = -aoe; i <= aoe; i++) {
                     for(int j = -aoe; j <= aoe; j++) {
                         for(int k = -aoe; k <= aoe; k++) {
@@ -97,9 +100,11 @@ public class XFactoryDrill {
                 }
             }
         }
+        int ammoToUse = 10;
 
-        mag.useUpAmmo(stack, ctx.inventory, 10);
-        if (calcWear) ItemGunBaseNT.setWear(stack, ctx.configIndex, Math.min(ItemGunBaseNT.getWear(stack, ctx.configIndex), ctx.config.getDurability(stack)));
+        if(WeaponModManager.hasUpgrade(stack, 0, WeaponModManager.ID_ENGINE_ELECTRIC)) ammoToUse = 1_000; // that's 1,000 operations
+        mag.useUpAmmo(stack, ctx.inventory, ammoToUse);
+        if(calcWear) ItemGunBaseNT.setWear(stack, index, Math.min(ItemGunBaseNT.getWear(stack, index), ctx.config.getDurability(stack)));
     }
 
     public static void breakExtraBlock(World world, BlockPos pos, EntityPlayer playerEntity, BlockPos refPos) {

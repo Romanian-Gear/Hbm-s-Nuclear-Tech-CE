@@ -11,20 +11,43 @@ import com.hbm.items.weapon.sedna.mags.IMagazine;
 import com.hbm.items.weapon.sedna.mags.MagazineEnergy;
 import com.hbm.items.weapon.sedna.mags.MagazineFluid;
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+
+import javax.annotation.Nullable;
 
 public class ItemGunDrill extends ItemGunBaseNT implements IFillableItem, IBatteryItem {
 
     public ItemGunDrill(WeaponQuality quality, String s, GunConfig... cfg) {
         super(quality, s, cfg);
     }
-
-    public int getHarvestLevel(ItemStack stack, String toolClass) {
-        return XFactoryDrill.getModdableHarvestLevel(stack, ToolMaterial.IRON.getHarvestLevel());
+    @Override
+    public int getHarvestLevel(ItemStack stack, String toolClass, @Nullable EntityPlayer player, @Nullable IBlockState blockState) {
+        int defaultLevel = ToolMaterial.IRON.getHarvestLevel();
+        return XFactoryDrill.getModdableHarvestLevel(stack, defaultLevel);
     }
-
-    public boolean canHarvestBlock(Block par1Block, ItemStack itemStack) {
+    @Override
+    public float getDestroySpeed(ItemStack stack, IBlockState state) {
+        return 50.0F; // extremely fast to simulate instant mining
+    }
+    @Override
+    public boolean canHarvestBlock(IBlockState state, ItemStack stack) {
         return true; // this lets us break things that have no set harvest level (i.e. most NTM shit)
+    }
+    @Override
+    public boolean onBlockStartBreak(ItemStack stack, BlockPos pos, EntityPlayer player) {
+        World world = player.world;
+        IBlockState state = world.getBlockState(pos);
+        if (!world.isRemote) {
+            // Force block drops ignoring harvest checks
+            state.getBlock().dropBlockAsItem(world, pos, state, 0);
+            world.setBlockToAir(pos); // actually remove the block
+        }
+        return true; // This is what bypasses the system in place on 1.12. Makes it work identical to 1.7. - Yeti
     }
 
     @Override
@@ -39,10 +62,11 @@ public class ItemGunDrill extends ItemGunBaseNT implements IFillableItem, IBatte
 
         if(mag instanceof MagazineFluid) {
             MagazineFluid engine = (MagazineFluid) mag;
-            int toFill = Math.min(amount, 50);
-            toFill = Math.min(toFill, engine.getCapacity(stack) - this.getFill(stack));
-            engine.setAmount(stack, this.getFill(stack) + toFill);
-            return amount - toFill;
+            for(FluidType acc : engine.acceptedTypes) {
+                if(type == acc) {
+                    return amount;
+                }
+            }
         }
 
         return 0;

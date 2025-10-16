@@ -280,7 +280,7 @@ public class ResourceManager {
 	public static final IModelCustom aberrator = new HFRWavefrontObject(new ResourceLocation(RefStrings.MODID, "models/weapons/aberrator.obj")).asVBO();
 	public static final IModelCustom mas36 = new HFRWavefrontObject(new ResourceLocation(RefStrings.MODID, "models/weapons/mas36.obj")).asVBO();
 	public static final IModelCustom charge_thrower = new HFRWavefrontObject(new ResourceLocation(RefStrings.MODID, "models/weapons/charge_thrower.obj")).asVBO();
-	public static final IModelCustom drill = new HFRWavefrontObject(new ResourceLocation(RefStrings.MODID, "models/weapons/drill;obj")).asVBO();
+	public static final IModelCustom drill = new HFRWavefrontObject(new ResourceLocation(RefStrings.MODID, "models/weapons/drill.obj")).asVBO();
 	public static IModelCustom egon_hose = new HFRWavefrontObject(new ResourceLocation(RefStrings.MODID, "models/weapons/egon_hose.obj")).asVBO();
 	public static IModelCustom egon_backpack = new HFRWavefrontObject(new ResourceLocation(RefStrings.MODID, "models/weapons/egon.obj")).asVBO();
 	
