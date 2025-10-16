@@ -6,9 +6,11 @@ import com.hbm.items.ModItems;
 import com.hbm.items.weapon.sedna.BulletConfig;
 import com.hbm.items.weapon.sedna.ItemGunBaseNT;
 import com.hbm.items.weapon.sedna.factory.*;
+import com.hbm.items.weapon.sedna.mags.IMagazine;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.math.MathHelper;
 
 import java.util.*;
 
@@ -142,6 +144,9 @@ public class WeaponModManager {
         new WeaponModDefinition(GunFactory.EnumModSpecial.ENGINE_AVIATION).addMod(new Item[] {ModItems.gun_drill}, new WeaponModEngine(ID_ENGINE_AVIATION).mag(WeaponModEngine.ENGINE_AVIATION).delay(10));
         new WeaponModDefinition(GunFactory.EnumModSpecial.ENGINE_ELECTRIC).addMod(new Item[] {ModItems.gun_drill}, new WeaponModEngine(ID_ENGINE_ELECTRIC).mag(WeaponModEngine.ENGINE_ELECTRIC).delay(15));
         new WeaponModDefinition(GunFactory.EnumModSpecial.ENGINE_TURBO).addMod(new Item[] {ModItems.gun_drill}, new WeaponModEngine(ID_ENGINE_TURBO).mag(WeaponModEngine.ENGINE_TURBO).delay(2));
+        new WeaponModDefinition(GunFactory.EnumModSpecial.MAGNET).addMod(new Item[] {ModItems.gun_drill}, new WeaponModDrillFortune(230, "MAGNET", 2));
+        new WeaponModDefinition(GunFactory.EnumModSpecial.SIFTER).addMod(new Item[] {ModItems.gun_drill}, new WeaponModDrillFortune(231, "SIFTER", 1));
+        new WeaponModDefinition(GunFactory.EnumModSpecial.CANISTERS).addMod(new Item[] {ModItems.gun_drill}, new WeaponModCanisters(232));
 
 
         BulletConfig[] p9 = new BulletConfig[] {XFactory9mm.p9_sp, XFactory9mm.p9_fmj, XFactory9mm.p9_jhp, XFactory9mm.p9_ap};
@@ -229,10 +234,53 @@ public class WeaponModManager {
         return false;
     }
 
+    private static Object prevMagType;
+    private static int prevMagCount;
+    private static boolean changedMagState = false;
+
+    public static void changedMagState() {
+        changedMagState = true;
+    }
+
+    /** Saves the state on receiver 0 so that if the mag changes through upgrading, the state may potentially be restored, if compatible */
+    private static void saveMagState(ItemStack stack, int cfg) {
+        IMagazine mag = ((ItemGunBaseNT) stack.getItem()).getConfig(stack, cfg).getReceivers(stack)[0].getMagazine(stack);
+        prevMagType = mag.getType(stack, null);
+        prevMagCount = mag.getAmount(stack, null);
+    }
+
+    /*
+     * TODO: as soon as there's guns that use more receivers, handle those as well
+     * arising problem: assume there's three receivers, 0, 1, 2, and receiver 1 is removed by pulling a weapon mod.
+     * the previous states of receivers 0 and 2 would need to be mapped to the new receivers 0 and 1.
+     * proposed solution: order can be expected the same, simply check both arrays side by side and skip an index on either
+     * one if that one's type doesn't match. there may be edge cases where this doesn't work, especially with a ton of
+     * receivers, but for a common case of an SMG + GL this should work just fine
+     */
+    private static void restoreMagState(ItemStack stack, int cfg) {
+        if(!changedMagState) return;
+        changedMagState = false;
+
+        IMagazine mag = ((ItemGunBaseNT) stack.getItem()).getConfig(stack, cfg).getReceivers(stack)[0].getMagazine(stack);
+        if(mag.getType(stack, null) == prevMagType) {
+            mag.setAmount(stack, MathHelper.clamp(prevMagCount, 0, mag.getCapacity(stack)));
+        } else {
+            mag.setAmount(stack, 0);
+        }
+    }
+
+    /**
+     * Saves the mag state on receiver 0, uninstalls all existing mods to ensure there's no double install calls,
+     * then installs the mods. If a mag state change has been reported, the mag on receiver 0 is validated,
+     * i.e. if the type is still the same, the amount is restored, otherwise the mag is cleared.
+     */
     /** Installs the supplied mods to the gun */
     public static void install(ItemStack stack, int cfg, ItemStack... mods) {
         List<IWeaponMod> toInstall = new ArrayList<>();
         RecipesCommon.ComparableStack gun = new RecipesCommon.ComparableStack(stack);
+        saveMagState(stack, cfg);
+        // we need to always clear things, so existing mods aren't installed twice, i.e. enchantment levels applied twice
+        uninstall(stack, cfg);
 
         for(ItemStack mod : mods) {
             if(mod == null) continue;
@@ -253,6 +301,7 @@ public class WeaponModManager {
         int[] modIds = new int[toInstall.size()];
         for(int i = 0; i < modIds.length; i++) modIds[i] = idToMod.inverse().get(toInstall.get(i));
         Objects.requireNonNull(stack.getTagCompound()).setIntArray(KEY_MOD_LIST + cfg, modIds);
+        restoreMagState(stack, cfg);
     }
 
     /** Wipes all mods from the gun */

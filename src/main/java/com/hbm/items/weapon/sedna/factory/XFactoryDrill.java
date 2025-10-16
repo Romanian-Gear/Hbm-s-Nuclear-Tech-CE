@@ -1,5 +1,6 @@
 package com.hbm.items.weapon.sedna.factory;
 
+import com.hbm.blocks.ICustomBlockHighlight;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.items.ModItems;
@@ -21,6 +22,7 @@ import com.hbm.render.misc.RenderScreenOverlay;
 import com.hbm.util.EntityDamageUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -29,9 +31,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.SPacketEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -186,5 +191,46 @@ public class XFactoryDrill {
                 return null;
         }
     };
+    @SideOnly(Side.CLIENT)
+    public static void drawBlockHighlight(EntityPlayer player, ItemStack drill, float partialTicks) {
+        RayTraceResult mop = EntityDamageUtil.getMouseOver(player, getModdableReach(drill, 5.0D));
+
+        if (mop != null && mop.typeOfHit == RayTraceResult.Type.BLOCK) {
+            double dX = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks;
+            double dY = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks;
+            double dZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks;
+
+            ICustomBlockHighlight.setup();
+
+            int aoe = player.isSneaking() ? 0 : getModdableAoE(drill, 1);
+
+            float exp = 0.002F;
+
+            AxisAlignedBB aabb = new AxisAlignedBB(0, 0, 0, 1, 1, 1);
+            RenderGlobal.drawSelectionBoundingBox(
+                    aabb.grow(exp).offset(
+                            mop.getBlockPos().getX() - dX,
+                            mop.getBlockPos().getY() - dY,
+                            mop.getBlockPos().getZ() - dZ
+                    ),
+                    aoe > 0 ? 1.0F : 0.0F, 0.0F, 0.0F, 0.4F
+            );
+
+            // AoE outline if applicable
+            if (aoe > 0) {
+                aabb = new AxisAlignedBB(-aoe, -aoe, -aoe, 1 + aoe, 1 + aoe, 1 + aoe);
+                RenderGlobal.drawSelectionBoundingBox(
+                        aabb.grow(exp).offset(
+                                mop.getBlockPos().getX() - dX,
+                                mop.getBlockPos().getY() - dY,
+                                mop.getBlockPos().getZ() - dZ
+                        ),
+                        1.0F, 0.0F, 0.0F, 0.4F
+                );
+            }
+
+            ICustomBlockHighlight.cleanup();
+        }
+    }
 
     }

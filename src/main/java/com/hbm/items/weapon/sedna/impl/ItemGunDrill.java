@@ -8,6 +8,7 @@ import com.hbm.items.weapon.sedna.GunConfig;
 import com.hbm.items.weapon.sedna.ItemGunBaseNT;
 import com.hbm.items.weapon.sedna.factory.XFactoryDrill;
 import com.hbm.items.weapon.sedna.mags.IMagazine;
+import com.hbm.items.weapon.sedna.mags.MagazineEnergy;
 import com.hbm.items.weapon.sedna.mags.MagazineFluid;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
@@ -69,14 +70,61 @@ public class ItemGunDrill extends ItemGunBaseNT implements IFillableItem, IBatte
         return 0;
     }
 
-    // TBI
-    // Still waiting for bobcat to finish this - SilentYeti
-    @Override public void chargeBattery(ItemStack stack, long i) { }
-    @Override public void setCharge(ItemStack stack, long i) { }
-    @Override public void dischargeBattery(ItemStack stack, long i) { }
-    @Override public long getCharge(ItemStack stack) { return 0; }
-    @Override public long getMaxCharge(ItemStack stack) { return 0; }
-    @Override public long getChargeRate() { return 0; }
+    @Override
+    public void chargeBattery(ItemStack stack, long i) {
+        IMagazine mag = ((ItemGunBaseNT) stack.getItem()).getConfig(stack, 0).getReceivers(stack)[0].getMagazine(stack);
+
+        if(mag instanceof MagazineEnergy) {
+            MagazineEnergy engine = (MagazineEnergy) mag;
+            engine.setAmount(stack, Math.min(engine.capacity, engine.getAmount(stack, null) + (int) i));
+        }
+    }
+
+    @Override
+    public void setCharge(ItemStack stack, long i) {
+        IMagazine mag = ((ItemGunBaseNT) stack.getItem()).getConfig(stack, 0).getReceivers(stack)[0].getMagazine(stack);
+
+        if(mag instanceof MagazineEnergy) {
+            MagazineEnergy engine = (MagazineEnergy) mag;
+            engine.setAmount(stack, (int) i);
+        }
+    }
+
+    @Override
+    public void dischargeBattery(ItemStack stack, long i) {
+        IMagazine mag = ((ItemGunBaseNT) stack.getItem()).getConfig(stack, 0).getReceivers(stack)[0].getMagazine(stack);
+
+        if(mag instanceof MagazineEnergy) {
+            MagazineEnergy engine = (MagazineEnergy) mag;
+            engine.setAmount(stack, Math.max(0, engine.getAmount(stack, null) - (int) i));
+        }
+    }
+
+    @Override
+    public long getCharge(ItemStack stack) {
+        IMagazine mag = ((ItemGunBaseNT) stack.getItem()).getConfig(stack, 0).getReceivers(stack)[0].getMagazine(stack);
+
+        if(mag instanceof MagazineEnergy) {
+            MagazineEnergy engine = (MagazineEnergy) mag;
+            return engine.getAmount(stack, null);
+        }
+
+        return 0;
+    }
+
+    @Override
+    public long getMaxCharge(ItemStack stack) {
+        IMagazine mag = ((ItemGunBaseNT) stack.getItem()).getConfig(stack, 0).getReceivers(stack)[0].getMagazine(stack);
+
+        if(mag instanceof MagazineEnergy) {
+            MagazineEnergy engine = (MagazineEnergy) mag;
+            return engine.getCapacity(stack);
+        }
+
+        return 0;
+    }
+
+    @Override public long getChargeRate() { return 50_000; }
     @Override public long getDischargeRate() { return 0; }
 }
 
