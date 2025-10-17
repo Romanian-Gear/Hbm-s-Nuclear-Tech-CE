@@ -59,7 +59,7 @@ public class XFactoryDrill {
                         .offset(1, -0.0625 * 2.5, -0.25D)
                         .canFire(Lego.LAMBDA_STANDARD_CAN_FIRE).fire(LAMBDA_DRILL_FIRE))
                 .pp(Lego.LAMBDA_STANDARD_CLICK_PRIMARY).pr(Lego.LAMBDA_STANDARD_RELOAD).decider(GunStateDecider.LAMBDA_STANDARD_DECIDER)
-                .anim(LAMBDA_DRILL_ANIMS)
+                .anim(LAMBDA_DRILL_ANIMS).orchestra(Orchestras.ORCHESTRA_DRILL)
         );
     }
 
@@ -159,6 +159,7 @@ public class XFactoryDrill {
             case CYCLE: {
                 double deploy = HbmAnimationsSedna.getRelevantTransformation("DEPLOY")[0];
                 double spin = HbmAnimationsSedna.getRelevantTransformation("SPIN")[2] % 360;
+                double speed = HbmAnimationsSedna.getRelevantTransformation("SPEED")[0];
 
                 return new BusAnimationSedna()
                         .addBus("DEPLOY", new BusAnimationSequenceSedna()
@@ -171,6 +172,12 @@ public class XFactoryDrill {
                                 .setPos(spin, 0, 0)
                                 .addPos(spin + 360 * 1.5, 0, 0, 1500)
                                 .addPos(spin + 360 * 2, 0, 0, 750, BusAnimationKeyframeSedna.IType.SIN_DOWN)
+                        )
+                        .addBus("SPEED", new BusAnimationSequenceSedna()
+                                .setPos(speed, 0, 0)
+                                .addPos(1, 0, 0, 500)
+                                .hold(1000)
+                                .addPos(0, 0, 0, 750 + (int) (1000 * (1D - spin / 360D)), BusAnimationKeyframeSedna.IType.SIN_DOWN)
                         );
             }
 
@@ -182,7 +189,12 @@ public class XFactoryDrill {
                         )
                         .addBus("SPIN", new BusAnimationSequenceSedna()
                                 .addPos(360 * 1, 0, 0, 1500, BusAnimationKeyframeSedna.IType.SIN_DOWN)
+                        )
+                        .addBus("SPEED", new BusAnimationSequenceSedna()
+                            .addPos(0.75, 0, 0, 250)
+                            .addPos(0, 0, 0, 1000, BusAnimationKeyframeSedna.IType.SIN_DOWN)
                         );
+
 
             case INSPECT:
                 return new BusAnimationSedna()

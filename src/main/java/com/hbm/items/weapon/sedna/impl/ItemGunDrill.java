@@ -12,13 +12,19 @@ import com.hbm.items.weapon.sedna.mags.MagazineEnergy;
 import com.hbm.items.weapon.sedna.mags.MagazineFluid;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
 
 public class ItemGunDrill extends ItemGunBaseNT implements IFillableItem, IBatteryItem {
 
@@ -52,28 +58,80 @@ public class ItemGunDrill extends ItemGunBaseNT implements IFillableItem, IBatte
 
     @Override
     public boolean acceptsFluid(FluidType type, ItemStack stack) {
-        IMagazine mag = ((ItemGunBaseNT) stack.getItem()).getConfig(stack, 0).getReceivers(stack)[0].getMagazine(stack);
-        return mag instanceof MagazineFluid;
+        IMagazine mag = ((ItemGunBaseNT) stack.getItem())
+                .getConfig(stack, 0)
+                .getReceivers(stack)[0]
+                .getMagazine(stack);
+
+        // Only accept if it's a fluid magazine and supports this type
+        if (mag instanceof MagazineFluid) {
+            MagazineFluid engine = (MagazineFluid) mag;
+            return Arrays.asList(engine.acceptedTypes).contains(type)
+                    || getMagCount(stack) == 0; // Empty = can initialize with this type
+        }
+
+        return false;
     }
+    public static final int transferSpeed = 50;
 
     @Override
     public int tryFill(FluidType type, int amount, ItemStack stack) {
-        IMagazine mag = ((ItemGunBaseNT) stack.getItem()).getConfig(stack, 0).getReceivers(stack)[0].getMagazine(stack);
+        if (!acceptsFluid(type, stack)) return amount;
+        if (getMagCount(stack) == 0) setMagType(stack, type.getID());
 
-        if(mag instanceof MagazineFluid) {
+        IMagazine mag = ((ItemGunBaseNT) stack.getItem())
+                .getConfig(stack, 0)
+                .getReceivers(stack)[0]
+                .getMagazine(stack);
+
+        int fill = getMagCount(stack);
+        int capacity = mag.getCapacity(stack);
+        int needed = capacity - fill;
+        if (needed <= 0) return amount; // already full
+
+        int toFill = Math.min(amount, needed);
+        toFill = Math.min(toFill, transferSpeed);
+        setMagCount(stack, fill + toFill);
+
+        return amount - toFill; // return leftover
+    }
+
+    @Override
+    public int tryEmpty(FluidType type, int amount, ItemStack stack) {
+        int fill = getMagCount(stack);
+        int toUnload = Math.min(fill, amount);
+        toUnload = Math.min(toUnload, transferSpeed);
+        setMagCount(stack, fill - toUnload);
+        return toUnload;
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+        super.addInformation(stack, worldIn, tooltip, flagIn);
+
+        IMagazine mag = ((ItemGunBaseNT) stack.getItem()).getConfig(stack, 0)
+                .getReceivers(stack)[0].getMagazine(stack);
+
+        if (mag instanceof MagazineFluid) {
             MagazineFluid engine = (MagazineFluid) mag;
-            for(FluidType acc : engine.acceptedTypes) {
-                if(type == acc) {
-                    return amount;
-                }
+            FluidType type = engine.getType(stack, null);
+            int amount = engine.getAmount(stack, null);
+            int capacity = engine.getCapacity(stack);
+
+            if (type == Fluids.NONE || amount <= 0) {
+                tooltip.add(TextFormatting.GRAY + "Fuel: Empty (" + capacity + " mB)");
+            } else {
+                tooltip.add(TextFormatting.GRAY + "Fuel: " + type.getName() + " " + amount + "/" + capacity + " mB");
             }
         }
-
-        return 0;
     }
 
     @Override public boolean providesFluid(FluidType type, ItemStack stack) { return false; }
-    @Override public int tryEmpty(FluidType type, int amount, ItemStack stack) { return amount; }
+    public static int getMagCount(ItemStack stack) { return ItemGunBaseNT.getValueInt(stack, MagazineFluid.KEY_MAG_COUNT + 0); }
+    public static void setMagCount(ItemStack stack, int value) { ItemGunBaseNT.setValueInt(stack, MagazineFluid.KEY_MAG_COUNT + 0, value); }
+    public static int getMagType(ItemStack stack) { return ItemGunBaseNT.getValueInt(stack, MagazineFluid.KEY_MAG_TYPE + 0); }
+    public static void setMagType(ItemStack stack, int value) { ItemGunBaseNT.setValueInt(stack, MagazineFluid.KEY_MAG_TYPE + 0, value); }
 
     @Override
     public FluidType getFirstFluidType(ItemStack stack) {
@@ -84,14 +142,7 @@ public class ItemGunDrill extends ItemGunBaseNT implements IFillableItem, IBatte
 
     @Override
     public int getFill(ItemStack stack) {
-        IMagazine mag = ((ItemGunBaseNT) stack.getItem()).getConfig(stack, 0).getReceivers(stack)[0].getMagazine(stack);
-
-        if(mag instanceof MagazineFluid) {
-            MagazineFluid engine = (MagazineFluid) mag;
-            return engine.getAmount(stack, null);
-        }
-
-        return 0;
+        return getMagCount(stack);
     }
 
     @Override
