@@ -59,6 +59,9 @@ import com.hbm.particle.ParticleBatchRenderer;
 import com.hbm.particle.ParticleFirstPerson;
 import com.hbm.particle.gluon.ParticleGluonBurnTrail;
 import com.hbm.physics.ParticlePhysicsBlocks;
+import com.hbm.items.weapon.sedna.factory.XFactoryGluon;
+import com.hbm.items.weapon.sedna.ItemGunBaseNT;
+import com.hbm.render.anim.sedna.HbmAnimationsSedna;
 import com.hbm.qmaw.GuiQMAW;
 import com.hbm.qmaw.QMAWLoader;
 import com.hbm.qmaw.QuickManualAndWiki;
@@ -1013,25 +1016,6 @@ Object object6 = evt.getModelRegistry().getObject(com.hbm.items.tool.ItemCaniste
                 }
             }
         } else {
-
-            if (Minecraft.getMinecraft().world != null) {
-                //Drillgon200: If I add more guns like this, I'll abstract it.
-                for (EntityPlayer player : Minecraft.getMinecraft().world.playerEntities) {
-                    if (player.getHeldItemMainhand().getItem() == ModItems.gun_egon && !ItemGunEgon.soundsByPlayer.containsKey(player)) {
-                        boolean firing = player == Minecraft.getMinecraft().player ? ItemGunEgon.m1 && Library.countInventoryItem(player.inventory, ItemGunEgon.getBeltType(player, player.getHeldItemMainhand(), true)) >= 2 : ItemGunEgon.getIsFiring(player.getHeldItemMainhand());
-                        if (firing) {
-                            ItemGunEgon.soundsByPlayer.put(player, new GunEgonSoundHandler(player));
-                        }
-                    }
-                }
-            }
-            Iterator<GunEgonSoundHandler> itr = ItemGunEgon.soundsByPlayer.values().iterator();
-            while (itr.hasNext()) {
-                GunEgonSoundHandler g = itr.next();
-                g.update();
-                if (g.ticks == -1)
-                    itr.remove();
-            }
         }
         if (Minecraft.getMinecraft().player != null) {
             JetpackHandler.clientTick(e);
@@ -1398,33 +1382,38 @@ Object object6 = evt.getModelRegistry().getObject(com.hbm.items.tool.ItemCaniste
 			buf.pos(0, 0, 0).endVertex();
 			buf.pos(c3.x, c3.y, c3.z).endVertex();
 			tes.draw();
-			GlStateManager.enableTexture2D();
-			GlStateManager.popMatrix();*/
+            GlStateManager.enableTexture2D();
+            GlStateManager.popMatrix();*/
 
-            //GLUON GUN//
-            if (player.getHeldItemMainhand().getItem() == ModItems.gun_egon && ItemGunEgon.activeTicks > 0 && Minecraft.getMinecraft().gameSettings.thirdPersonView == 0) {
-                GlStateManager.pushMatrix();
-                float[] angles = ItemGunEgon.getBeamDirectionOffset(player.world.getTotalWorldTime() + partialTicks);
-                Vec3d look = Library.changeByAngle(player.getLook(partialTicks), angles[0], angles[1]);
-                RayTraceResult r = Library.rayTraceIncludeEntitiesCustomDirection(player, look, 50, partialTicks);
-                Vec3d pos = player.getPositionEyes(partialTicks);
-                Vec3d hitPos = pos.add(look.scale(50));
-                if (r == null || r.typeOfHit == Type.MISS) {
-                } else {
-                    hitPos = r.hitVec.add(look.scale(-0.1));
+            //GLUON GUN (Sedna) - First Person Beam//
+            if (player.getHeldItemMainhand().getItem() == ModItems.gun_egon && Minecraft.getMinecraft().gameSettings.thirdPersonView == 0) {
+                ItemStack gluonStack = player.getHeldItemMainhand();
+                HbmAnimationsSedna.AnimType currentAnim = ItemGunBaseNT.getLastAnim(gluonStack, 0);
+                ItemGunBaseNT.GunState gunState = ItemGunBaseNT.getState(gluonStack, 0);
+                if (currentAnim == HbmAnimationsSedna.AnimType.CYCLE && gunState == ItemGunBaseNT.GunState.COOLDOWN) {
+                    GlStateManager.pushMatrix();
+                    float[] angles = XFactoryGluon.getBeamDirectionOffset(player.world.getTotalWorldTime() + partialTicks);
+                    Vec3d look = Library.changeByAngle(player.getLook(partialTicks), angles[0], angles[1]);
+                    RayTraceResult r = Library.rayTraceIncludeEntitiesCustomDirection(player, look, 50, partialTicks);
+                    Vec3d pos = player.getPositionEyes(partialTicks);
+                    Vec3d hitPos = pos.add(look.scale(50));
+                    if (r == null || r.typeOfHit == Type.MISS) {
+                    } else {
+                        hitPos = r.hitVec.add(look.scale(-0.1));
+                    }
+                    // Add visual wobble offset to beam start position
+                    float[] offset = XFactoryGluon.getBeamVisualOffset(player.world.getTotalWorldTime() + partialTicks);
+                    //I'll at least attempt to make it look consistent at different fovs
+                    float fovDiff = (currentFOV - 70) * 0.0002F;
+                    Vec3d start = new Vec3d(-0.18 + offset[0] * 0.075F - fovDiff, -0.2 + offset[1] * 0.1F, 0.35 - fovDiff * 30);
+                    start = start.rotatePitch((float) Math.toRadians(-(player.prevRotationPitch + (player.rotationPitch - player.prevRotationPitch) * partialTicks)));
+                    start = start.rotateYaw((float) Math.toRadians(-(player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * partialTicks)));
+
+                    start = start.add(0, player.getEyeHeight(), 0);
+                    GlStateManager.translate(start.x, start.y, start.z);
+                    BeamPronter.gluonBeam(new Vec3d(0, 0, 0), new Vec3d(Vec3dUtil.convertToVec3i(hitPos.subtract(pos).subtract(start.subtract(0, player.getEyeHeight(), 0)))), 0.4F);
+                    GlStateManager.popMatrix();
                 }
-                float[] offset = ItemRenderGunEgon.getOffset(player.world.getTotalWorldTime() + partialTicks);
-                //I'll at least attempt to make it look consistent at different fovs
-                float fovDiff = (currentFOV - 70) * 0.0002F;
-                Vec3d start = new Vec3d(-0.18 + offset[0] * 0.075F - fovDiff, -0.2 + offset[1] * 0.1F, 0.35 - fovDiff * 30);
-                start = start.rotatePitch((float) Math.toRadians(-(player.prevRotationPitch + (player.rotationPitch - player.prevRotationPitch) * partialTicks)));
-                start = start.rotateYaw((float) Math.toRadians(-(player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * partialTicks)));
-
-                start = start.add(0, player.getEyeHeight(), 0);
-                GlStateManager.translate(start.x, start.y, start.z);
-                BeamPronter.gluonBeam(new Vec3d(0, 0, 0), new Vec3d(Vec3dUtil.convertToVec3i(hitPos.subtract(pos).subtract(start.subtract(0, player.getEyeHeight(), 0)))), 0.4F);
-                GlStateManager.popMatrix();
-
             }
         }
 
@@ -1451,35 +1440,47 @@ Object object6 = evt.getModelRegistry().getObject(com.hbm.items.tool.ItemCaniste
                 ((ItemGunBase) player.getHeldItemOffhand().getItem()).playerWorldRender(player, evt, EnumHand.OFF_HAND);
             }
 
-            //Gluon gun world rendering
-            if (player.getHeldItemMainhand().getItem() != ModItems.gun_egon) {
-                ItemGunEgon.activeTrailParticles.remove(player);
+            //Gluon gun world rendering (Sedna)
+            ItemStack heldItem = player.getHeldItemMainhand();
+            if (heldItem.getItem() != ModItems.gun_egon) {
+                XFactoryGluon.activeTrailParticles.remove(player);
                 continue;
             }
-            boolean firing = player == Minecraft.getMinecraft().player ? ItemGunEgon.m1 && Library.countInventoryItem(player.inventory, ItemGunEgon.getBeltType(player, player.getHeldItemMainhand(), true)) >= 2 : ItemGunEgon.getIsFiring(player.getHeldItemMainhand());
+            
+            // Check if the Sedna gluon gun is actively firing
+            // Gun is firing when animation is CYCLE AND gun state is COOLDOWN
+            boolean firing = false;
+            if(heldItem.getItem() instanceof ItemGunBaseNT) {
+                HbmAnimationsSedna.AnimType currentAnim = ItemGunBaseNT.getLastAnim(heldItem, 0);
+                ItemGunBaseNT.GunState gunState = ItemGunBaseNT.getState(heldItem, 0);
+                firing = currentAnim == HbmAnimationsSedna.AnimType.CYCLE && gunState == ItemGunBaseNT.GunState.COOLDOWN;
+            }
+            
             if (!firing) {
-                ItemGunEgon.activeTrailParticles.remove(player);
+                XFactoryGluon.activeTrailParticles.remove(player);
                 continue;
             }
-            float[] angles = ItemGunEgon.getBeamDirectionOffset(player.world.getTotalWorldTime() + partialTicks);
+            
+            float[] angles = XFactoryGluon.getBeamDirectionOffset(player.world.getTotalWorldTime() + partialTicks);
             Vec3d look = Library.changeByAngle(player.getLook(partialTicks), angles[0], angles[1]);
             RayTraceResult r = Library.rayTraceIncludeEntitiesCustomDirection(player, look, 50, partialTicks);
             if (r != null && r.hitVec != null && r.typeOfHit == Type.BLOCK) {
                 ParticleGluonBurnTrail currentTrailParticle = null;
-                if (!ItemGunEgon.activeTrailParticles.containsKey(player)) {
+                
+                if (!XFactoryGluon.activeTrailParticles.containsKey(player)) {
                     currentTrailParticle = new ParticleGluonBurnTrail(player.world, 0.4F, player);
                     Minecraft.getMinecraft().effectRenderer.addEffect(currentTrailParticle);
-                    ItemGunEgon.activeTrailParticles.put(player, currentTrailParticle);
+                    XFactoryGluon.activeTrailParticles.put(player, currentTrailParticle);
                 } else {
-                    currentTrailParticle = ItemGunEgon.activeTrailParticles.get(player);
+                    currentTrailParticle = XFactoryGluon.activeTrailParticles.get(player);
                 }
                 Vec3d normal = Library.normalFromRayTrace(r);
                 if (!currentTrailParticle.tryAddNewPosition(r.hitVec.add(normal.scale(0.02)), normal)) {
                     currentTrailParticle = null;
-                    ItemGunEgon.activeTrailParticles.remove(player);
+                    XFactoryGluon.activeTrailParticles.remove(player);
                 }
             } else {
-                ItemGunEgon.activeTrailParticles.remove(player);
+                XFactoryGluon.activeTrailParticles.remove(player);
             }
         }
 
@@ -1860,29 +1861,33 @@ Object object6 = evt.getModelRegistry().getObject(com.hbm.items.tool.ItemCaniste
     public void postRenderPlayer(RenderPlayerEvent.Post event) {
         JetpackHandler.postRenderPlayer(event.getEntityPlayer());
         EntityPlayer player = event.getEntityPlayer();
-        //GLUON GUN//
-        boolean firing = player == Minecraft.getMinecraft().player ? ItemGunEgon.m1 && Library.countInventoryItem(player.inventory, ItemGunEgon.getBeltType(player, player.getHeldItemMainhand(), true)) >= 2 : ItemGunEgon.getIsFiring(player.getHeldItemMainhand());
+        //GLUON GUN (Sedna) - Third Person Beam//
         EgonBackpackRenderer.showBackpack = false;
-        if (player.getHeldItemMainhand().getItem() == ModItems.gun_egon && firing) {
-            GlStateManager.pushMatrix();
-            float partialTicks = event.getPartialRenderTick();
-            float[] angles = ItemGunEgon.getBeamDirectionOffset(player.world.getTotalWorldTime() + partialTicks);
-            Vec3d look = Library.changeByAngle(player.getLook(partialTicks), angles[0], angles[1]);
-            RayTraceResult r = Library.rayTraceIncludeEntitiesCustomDirection(player, look, 50, event.getPartialRenderTick());
-            Vec3d pos = player.getPositionEyes(event.getPartialRenderTick());
-            Vec3d hitPos = pos.add(look.scale(50));
-            if (r == null || r.typeOfHit == Type.MISS) {
-            } else {
-                hitPos = r.hitVec.add(look.scale(-0.1));
-            }
-            Vec3d start = new Vec3d(-0.18, -0.1, 0.35);
-            start = start.rotatePitch((float) Math.toRadians(-(player.prevRotationPitch + (player.rotationPitch - player.prevRotationPitch) * partialTicks)));
-            start = start.rotateYaw((float) Math.toRadians(-(player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * partialTicks)));
+        if (player.getHeldItemMainhand().getItem() == ModItems.gun_egon) {
+            ItemStack gluonStack = player.getHeldItemMainhand();
+            HbmAnimationsSedna.AnimType currentAnim = ItemGunBaseNT.getLastAnim(gluonStack, 0);
+            ItemGunBaseNT.GunState gunState = ItemGunBaseNT.getState(gluonStack, 0);
+            if (currentAnim == HbmAnimationsSedna.AnimType.CYCLE && gunState == ItemGunBaseNT.GunState.COOLDOWN) {
+                GlStateManager.pushMatrix();
+                float partialTicks = event.getPartialRenderTick();
+                float[] angles = XFactoryGluon.getBeamDirectionOffset(player.world.getTotalWorldTime() + partialTicks);
+                Vec3d look = Library.changeByAngle(player.getLook(partialTicks), angles[0], angles[1]);
+                RayTraceResult r = Library.rayTraceIncludeEntitiesCustomDirection(player, look, 50, event.getPartialRenderTick());
+                Vec3d pos = player.getPositionEyes(event.getPartialRenderTick());
+                Vec3d hitPos = pos.add(look.scale(50));
+                if (r == null || r.typeOfHit == Type.MISS) {
+                } else {
+                    hitPos = r.hitVec.add(look.scale(-0.1));
+                }
+                Vec3d start = new Vec3d(-0.18, -0.1, 0.35);
+                start = start.rotatePitch((float) Math.toRadians(-(player.prevRotationPitch + (player.rotationPitch - player.prevRotationPitch) * partialTicks)));
+                start = start.rotateYaw((float) Math.toRadians(-(player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * partialTicks)));
 
-            Vec3d diff = player.getPositionEyes(partialTicks).subtract(TileEntityRendererDispatcher.staticPlayerX, TileEntityRendererDispatcher.staticPlayerY, TileEntityRendererDispatcher.staticPlayerZ);
-            GlStateManager.translate(start.x + diff.x, start.y + diff.y, start.z + diff.z);
-            BeamPronter.gluonBeam(new Vec3d(0, 0, 0), new Vec3d(Vec3dUtil.convertToVec3i(hitPos.subtract(pos))), 0.4F);
-            GlStateManager.popMatrix();
+                Vec3d diff = player.getPositionEyes(partialTicks).subtract(TileEntityRendererDispatcher.staticPlayerX, TileEntityRendererDispatcher.staticPlayerY, TileEntityRendererDispatcher.staticPlayerZ);
+                GlStateManager.translate(start.x + diff.x, start.y + diff.y, start.z + diff.z);
+                BeamPronter.gluonBeam(new Vec3d(0, 0, 0), new Vec3d(Vec3dUtil.convertToVec3i(hitPos.subtract(pos))), 0.4F);
+                GlStateManager.popMatrix();
+            }
         }
     }
 

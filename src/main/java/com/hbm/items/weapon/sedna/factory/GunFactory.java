@@ -57,6 +57,7 @@ public class GunFactory {
         XFactory50.init();
         XFactoryEnergy.init();
         XFactoryAccelerator.init();
+        XFactoryGluon.init();
         XFactoryCatapult.init();
         XFactory75Bolt.init();
         XFactoryFolly.init();
