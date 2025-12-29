@@ -78,6 +78,10 @@ public abstract class TileEntityRBMKBase extends TileEntityLoadedBase implements
 	public int reasimSteam;
 	public static final int maxSteam = 16000;
 
+    private double prevHeat;
+    private int prevWater;
+    private int prevSteam;
+
 	public boolean hasLid() {
 
 		if(!isLidRemovable())
@@ -115,19 +119,20 @@ public abstract class TileEntityRBMKBase extends TileEntityLoadedBase implements
 	public int trackingRange() {
 		return 15;
 	}
-	
-	@Override
-	public void update() {
 
-		if(!world.isRemote) {
-			moveHeat();
-			if(RBMKDials.getReasimBoilers(world))
-				boilWater();
-			coolPassively();
-			jump();
-			networkPackNT(trackingRange());
-		}
-	}
+    @Override
+    public void update() {
+
+        if(!world.isRemote) {
+            moveHeat();
+            if(RBMKDials.getReasimBoilers(world))
+                boilWater();
+            coolPassively();
+            jump();
+
+            detectAndSendChanges();
+        }
+    }
 
 	private void jump(){
 		if(this.heat <= MachineConfig.rbmkJumpTemp && !falling)
@@ -658,4 +663,36 @@ public abstract class TileEntityRBMKBase extends TileEntityLoadedBase implements
 	public World getControlWorld() {
 		return getWorld();
 	}
+
+    private void detectAndSendChanges() {
+
+        // Force update every 20 ticks (1 second) to keep GUI synced and connection alive
+        // Using hashCode staggers updates so all RBMK columns don't update on the exact same tick
+        boolean forceUpdate = (world.getTotalWorldTime() + this.pos.hashCode()) % 20 == 0;
+
+        boolean changed = false;
+
+        // Check Heat (using simple check to avoid spamming on micro-fluctuations)
+        if (Math.abs(prevHeat - heat) > 0.1D) {
+            prevHeat = heat;
+            changed = true;
+        }
+
+        // Check Water
+        if (prevWater != reasimWater) {
+            prevWater = reasimWater;
+            changed = true;
+        }
+
+        // Check Steam
+        if (prevSteam != reasimSteam) {
+            prevSteam = reasimSteam;
+            changed = true;
+        }
+
+        // Send packet only if something changed significantly OR it's time for a forced sync
+        if (changed || forceUpdate) {
+            networkPackNT(trackingRange());
+        }
+    }
 }
