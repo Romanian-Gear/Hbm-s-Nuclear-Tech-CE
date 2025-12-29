@@ -106,9 +106,9 @@ public class RenderControlPanel extends TileEntitySpecialRenderer<TileEntityCont
         GlStateManager.rotate(-270, 1, 0, 0);
         break;
     }
-
-    boolean isUp = ((te.getBlockMetadata() >> 2) == 1);
-    boolean isDown = ((te.getBlockMetadata() >> 3) == 1);
+    int meta = te.getBlockMetadata();
+    boolean isUp   = ((meta >> 3) & 1) == 1;
+    boolean isDown = ((meta >> 2) & 1) == 1;
 
     if (isUp) {
       GlStateManager.rotate(-180, 1, 0, 0);

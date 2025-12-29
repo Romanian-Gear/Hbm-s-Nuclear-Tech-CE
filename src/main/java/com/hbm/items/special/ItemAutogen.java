@@ -5,6 +5,7 @@ import com.hbm.Tags;
 import com.hbm.inventory.material.MaterialShapes;
 import com.hbm.inventory.material.Mats;
 import com.hbm.inventory.material.NTMMaterial;
+import com.hbm.items.IModelRegister;
 import com.hbm.items.ModItems;
 import com.hbm.render.icon.RGBMutatorInterpolatedComponentRemap;
 import com.hbm.render.icon.TextureAtlasSpriteMutatable;
@@ -36,7 +37,7 @@ import java.util.List;
 import java.util.Objects;
 
 //TODO: fix IDynamicModels
-public class ItemAutogen extends Item {
+public class ItemAutogen extends Item implements IModelRegister {
 
     public static List<ItemAutogen> INSTANCES = new ArrayList<>();
     MaterialShapes shape;
@@ -68,6 +69,7 @@ public class ItemAutogen extends Item {
         return this;
     }
 
+    @Override
     @SideOnly(Side.CLIENT)
     public void registerModels() {
         for (NTMMaterial mat : Mats.orderedList) {

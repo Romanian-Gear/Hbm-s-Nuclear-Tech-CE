@@ -282,12 +282,6 @@ public class NTMClientRegistry {
         }
         ModelLoader.registerItemVariants(ModItems.cell, list);
 
-        ModelResourceLocation[] locations = new ModelResourceLocation[ItemAmmoArty.itemTypes.length];
-        for (i = 0; i < ItemAmmoArty.itemTypes.length; i++) {
-            locations[i] = new ModelResourceLocation(ModItems.ammo_arty.getRegistryName() + "_" + i, "inventory");
-        }
-        ModelLoader.registerItemVariants(ModItems.ammo_arty, locations);
-
         FluidType[] order = Fluids.getInNiceOrder();
         for (i = 0; i < order.length; i++) {
             if (!order[i].hasNoID()) {
@@ -314,13 +308,10 @@ public class NTMClientRegistry {
             }
         }
         for (Block block : ModBlocks.ALL_BLOCKS) {
+            if (block instanceof IDynamicModels && IDynamicModels.INSTANCES.contains(block)) continue;
             registerBlockModel(block, 0);
         }
 
-
-        ((ItemBedrockOreNew) ModItems.bedrock_ore).registerModels();
-        ((ItemAmmoArty) ModItems.ammo_arty).registerModels();
-        ((ItemMold) ModItems.mold).registerModels();
         IDynamicModels.registerModels();
         IDynamicModels.registerCustomStateMappers();
         IMetaItemTesr.redirectModels();
@@ -334,14 +325,6 @@ public class NTMClientRegistry {
         ModelLoader.setCustomModelResourceLocation(ModItems.conveyor_wand, 3, new ModelResourceLocation(ModBlocks.conveyor_triple.getRegistryName(),
                 "inventory"));
         ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(ModBlocks.fence_metal), 1, new ModelResourceLocation("hbm:fence_metal_post", "inventory"));
-
-        //FIXME: this is a dogshit solution
-        // now 2 dogshit solutions!
-
-
-        for (ItemAutogen item : ItemAutogen.INSTANCES) {
-            item.registerModels();
-        }
     }
 
     private void registerBlockModel(Block block, int meta) {
@@ -433,7 +416,7 @@ public class NTMClientRegistry {
             ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
         } else if (item instanceof IHasCustomModel) {
             ModelLoader.setCustomModelResourceLocation(item, meta, ((IHasCustomModel) item).getResourceLocation());
-        } else if (item instanceof IDynamicModels dyn && dyn.INSTANCES.contains(item)) { // we are literally registering them manually, why do it twice?..
+        } else if (item instanceof IDynamicModels && IDynamicModels.INSTANCES.contains(item)) { // we are literally registering them manually, why do it twice?..
         } else {
             ModelLoader.setCustomModelResourceLocation(item, meta, new ModelResourceLocation(item.getRegistryName(), "inventory"));
         }

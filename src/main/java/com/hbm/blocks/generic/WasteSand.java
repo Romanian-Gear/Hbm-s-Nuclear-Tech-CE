@@ -23,7 +23,7 @@ import java.util.Random;
 
 public class WasteSand extends BlockFalling {
 
-    public static final PropertyInteger META = PropertyInteger.create("meta", 0, 15);
+    public static final PropertyInteger META = PropertyInteger.create("meta", 0, 6);
 
     public WasteSand(Material materialIn, String s) {
         super(materialIn);
@@ -48,7 +48,7 @@ public class WasteSand extends BlockFalling {
 
     @Override
     protected BlockStateContainer createBlockState() {
-        return new BlockStateContainer(this, new IProperty[]{META});
+        return new BlockStateContainer(this, META);
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.hbm.inventory.OreDictManager;
 import com.hbm.inventory.material.MaterialShapes;
 import com.hbm.inventory.material.Mats;
 import com.hbm.inventory.material.NTMMaterial;
+import com.hbm.items.IModelRegister;
 import com.hbm.items.ItemEnums;
 import com.hbm.items.ModItems;
 import com.hbm.main.MainRegistry;
@@ -40,7 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class ItemMold extends Item {
+public class ItemMold extends Item implements IModelRegister {
 
     public static List<Mold> molds = new ArrayList<>(); //molds in "pretty" order, variable between versions
     public static HashMap<Integer, Mold> moldById = new HashMap<>(); //molds by their static ID -> stack item damage
@@ -130,6 +131,7 @@ public class ItemMold extends Item {
         }
     }
 
+    @Override
     @SideOnly(Side.CLIENT)
     public void registerModels() {
         for (Mold mold : molds) {

@@ -12,6 +12,7 @@ import com.hbm.explosion.vanillant.standard.*;
 import com.hbm.handler.pollution.PollutionHandler;
 import com.hbm.handler.threading.PacketThreading;
 import com.hbm.inventory.fluid.Fluids;
+import com.hbm.items.IModelRegister;
 import com.hbm.items.ModItems;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.main.MainRegistry;
@@ -45,7 +46,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import java.util.List;
 import java.util.Random;
 
-public class ItemAmmoArty extends Item {
+public class ItemAmmoArty extends Item implements IModelRegister {
 
     public static Random rand = new Random();
     public static ArtilleryShell[] itemTypes =	new ArtilleryShell[ /* >>> */ 12 /* <<< */ ];
@@ -84,6 +85,7 @@ public class ItemAmmoArty extends Item {
         }
     }
 
+    @Override
     public void registerModels() {
         for (int i = 0; i <= 11; i++) {
             ModelLoader.setCustomModelResourceLocation(this, i,

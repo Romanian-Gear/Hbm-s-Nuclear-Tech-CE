@@ -60,8 +60,6 @@ public class BlockStairsEnumMeta extends BlockGenericStairs implements ICustomBl
         this.META_COUNT = (short) blockEnum.getEnumConstants().length;
 
         this.blockFrames = generateBlockFrames(registryName);
-
-        IDynamicModels.INSTANCES.add(this);
     }
 
 

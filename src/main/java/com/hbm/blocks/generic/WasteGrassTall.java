@@ -23,7 +23,7 @@ import java.util.Random;
 
 public class WasteGrassTall extends BlockBush {
 
-	public static final PropertyInteger META = PropertyInteger.create("meta", 0, 15);
+	public static final PropertyInteger META = PropertyInteger.create("meta", 0, 6);
 
 	public WasteGrassTall(Material materialIn, String s) {
 		super(materialIn);

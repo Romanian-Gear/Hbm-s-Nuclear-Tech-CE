@@ -11,6 +11,7 @@ import com.hbm.lib.Library;
 import com.hbm.render.model.CableBoxBakedModel;
 import com.hbm.tileentity.network.energy.TileEntityCableBaseNT;
 import net.minecraft.block.Block;
+import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
@@ -54,9 +55,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PowerCableBox extends Block implements ICustomBlockItem, IDynamicModels, IBlockSpecialPlacementAABB{
+public class PowerCableBox extends Block implements ITileEntityProvider, ICustomBlockItem, IDynamicModels, IBlockSpecialPlacementAABB{
 
-    public static final PropertyInteger META = PropertyInteger.create("meta", 0, 14);
+    public static final PropertyInteger META = PropertyInteger.create("meta", 0, 4);
     public static final IUnlistedProperty<Boolean> CONN_NORTH = new PowerCableBox.ConnectionProperty("north");
     public static final IUnlistedProperty<Boolean> CONN_SOUTH = new PowerCableBox.ConnectionProperty("south");
     public static final IUnlistedProperty<Boolean> CONN_WEST = new PowerCableBox.ConnectionProperty("west");
@@ -86,6 +87,7 @@ public class PowerCableBox extends Block implements ICustomBlockItem, IDynamicMo
         this.useNeighborBrightness = true;
 
         ModBlocks.ALL_BLOCKS.add(this);
+        IDynamicModels.INSTANCES.add(this);
         if (FMLCommonHandler.instance().getSide() == Side.CLIENT) {
             iconStraight = new TextureAtlasSprite[1];
             iconEnd = new TextureAtlasSprite[5];
@@ -102,6 +104,7 @@ public class PowerCableBox extends Block implements ICustomBlockItem, IDynamicMo
         return BlockFaceShape.UNDEFINED;
     }
 
+    @Override
     public TileEntity createNewTileEntity(World world, int meta) {
         return new TileEntityCableBaseNT();
     }
@@ -130,7 +133,7 @@ public class PowerCableBox extends Block implements ICustomBlockItem, IDynamicMo
 
     @Override
     public IBlockState getStateFromMeta(int meta) {
-        return this.getDefaultState().withProperty(META, meta % 15);
+        return this.getDefaultState().withProperty(META, meta % 5);
     }
 
     @Override
@@ -154,7 +157,7 @@ public class PowerCableBox extends Block implements ICustomBlockItem, IDynamicMo
 
     @Override
     public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-        int meta = stack.getMetadata();
+        int meta = stack.getMetadata() % 5;
         worldIn.setBlockState(pos, this.getStateFromMeta(meta), 3);
     }
 
