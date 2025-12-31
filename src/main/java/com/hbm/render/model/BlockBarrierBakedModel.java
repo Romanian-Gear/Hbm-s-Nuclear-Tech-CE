@@ -18,6 +18,9 @@ public class BlockBarrierBakedModel extends AbstractBakedModel {
 
     private final TextureAtlasSprite sprite;
     private final boolean isInventory;
+    @SuppressWarnings("unchecked")
+    private final List<BakedQuad>[] cache = new List[32];
+    private List<BakedQuad> inventoryCache;
 
     public BlockBarrierBakedModel(TextureAtlasSprite sprite, boolean isInventory) {
         super(BakedModelTransforms.standardBlock());
@@ -32,11 +35,11 @@ public class BlockBarrierBakedModel extends AbstractBakedModel {
         List<BakedQuad> quads = new ArrayList<>();
 
         if (isInventory) {
-            // Inventory representation: center post + two cross bars
+            if (inventoryCache != null) return inventoryCache;
             addBox(quads, 0.4375f, 0.0f, 0.4375f, 0.5625f, 1.0f, 0.5625f, sprite);
             addBox(quads, 0.5f, 0.0625f, 0.0f, 0.5625f, 0.4375f, 1.0f, sprite);
             addBox(quads, 0.5f, 0.5625f, 0.0f, 0.5625f, 0.9375f, 1.0f, sprite);
-            return quads;
+            return inventoryCache = Collections.unmodifiableList(quads);
         }
 
         boolean negX = false;
@@ -46,25 +49,17 @@ public class BlockBarrierBakedModel extends AbstractBakedModel {
         boolean posY = false;
 
         if (state instanceof IExtendedBlockState ext) {
-            Boolean b;
-
-            b = ext.getValue(BlockBarrier.CONN_NEG_X);
-            negX = b != null && b;
-
-            b = ext.getValue(BlockBarrier.CONN_POS_X);
-            posX = b != null && b;
-
-            b = ext.getValue(BlockBarrier.CONN_NEG_Z);
-            negZ = b != null && b;
-
-            b = ext.getValue(BlockBarrier.CONN_POS_Z);
-            posZ = b != null && b;
-
-            b = ext.getValue(BlockBarrier.CONN_POS_Y);
-            posY = b != null && b;
+            try {
+                negX = ext.getValue(BlockBarrier.CONN_NEG_X);
+                posX = ext.getValue(BlockBarrier.CONN_POS_X);
+                negZ = ext.getValue(BlockBarrier.CONN_NEG_Z);
+                posZ = ext.getValue(BlockBarrier.CONN_POS_Z);
+                posY = ext.getValue(BlockBarrier.CONN_POS_Y);
+            } catch (Exception _) { }
         }
 
-        // Replicate old TESR boxes logic:
+        int mask = (negX ? 1 : 0) | (posX ? 2 : 0) | (negZ ? 4 : 0) | (posZ ? 8 : 0) | (posY ? 16 : 0);
+        if (cache[mask] != null) return cache[mask];
 
         if (negX) {
             addBox(quads, 0.0f, 0.0f, 0.4375f, 0.125f, 1.0f, 0.5625f, sprite);
@@ -97,7 +92,7 @@ public class BlockBarrierBakedModel extends AbstractBakedModel {
             addBox(quads, 0.0f, 0.9375f, 0.5625f, 1.0f, 1.0f, 0.9375f, sprite);
         }
 
-        return quads;
+        return cache[mask] = Collections.unmodifiableList(quads);
     }
 
     @Override

@@ -31,8 +31,8 @@ public class CranePartitionerBakedModel extends AbstractWavefrontBakedModel {
 
     private final boolean forBlock;
     private final float itemYaw;
-
-    private final Map<EnumFacing, List<BakedQuad>> blockCache = new EnumMap<>(EnumFacing.class);
+    @SuppressWarnings("unchecked")
+    private final List<BakedQuad>[] cache = new List[6];
     private List<BakedQuad> itemQuads;
 
     private CranePartitionerBakedModel(HFRWavefrontObject model, VertexFormat format, float baseScale, float tx, float ty, float tz,
@@ -83,18 +83,24 @@ public class CranePartitionerBakedModel extends AbstractWavefrontBakedModel {
             return Collections.emptyList();
         }
 
-        if (forBlock) {
-            EnumFacing facing = EnumFacing.SOUTH;
-            if (state != null && state.getPropertyKeys().contains(CranePartitioner.FACING)) {
-                facing = state.getValue(CranePartitioner.FACING);
-            }
-            return blockCache.computeIfAbsent(facing, this::buildBlockQuads);
-        } else {
+        if (!forBlock) {
             if (itemQuads == null) {
                 itemQuads = buildItemQuads();
             }
             return itemQuads;
         }
+        EnumFacing facing = EnumFacing.SOUTH;
+        if (state != null) {
+            try {
+                facing = state.getValue(CranePartitioner.FACING);
+            } catch (Exception ignored) {
+            }
+        }
+        int index = facing.ordinal();
+        List<BakedQuad> quads = cache[index];
+        if (quads != null) return quads;
+        quads = buildBlockQuads(facing);
+        return cache[index] = quads;
     }
 
     private List<BakedQuad> buildBlockQuads(EnumFacing facing) {
@@ -134,7 +140,7 @@ public class CranePartitionerBakedModel extends AbstractWavefrontBakedModel {
             case NORTH -> RAD_90;
             case WEST -> RAD_180;
             case SOUTH -> RAD_270;
-            default -> 0.0F;
+            default -> 0.0F; // EAST and others
         };
     }
 

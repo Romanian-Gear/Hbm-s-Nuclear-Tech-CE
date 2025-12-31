@@ -19,8 +19,8 @@ public class BlockCableBakedModel extends AbstractWavefrontBakedModel {
     private final TextureAtlasSprite sprite;
     private final boolean forBlock;
     private final float itemYaw;
-
-    private final Map<Integer, List<BakedQuad>> cacheByMask = new HashMap<>();
+    @SuppressWarnings("unchecked")
+    private final List<BakedQuad>[] cache = new List[64];
     private List<BakedQuad> itemQuads;
 
     private BlockCableBakedModel(HFRWavefrontObject model, TextureAtlasSprite sprite, boolean forBlock, float baseScale, float tx, float ty, float tz, float itemYaw) {
@@ -46,37 +46,32 @@ public class BlockCableBakedModel extends AbstractWavefrontBakedModel {
     public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
         if (side != null) return Collections.emptyList();
 
-        if (forBlock) {
-            boolean pX = false, nX = false, pY = false, nY = false, pZ = false, nZ = false;
-            if (state != null) {
-                try {
-                    if (state.getPropertyKeys().contains(BlockCable.POS_X)) pX = state.getValue(BlockCable.POS_X);
-                    if (state.getPropertyKeys().contains(BlockCable.NEG_X)) nX = state.getValue(BlockCable.NEG_X);
-                    if (state.getPropertyKeys().contains(BlockCable.POS_Y)) pY = state.getValue(BlockCable.POS_Y);
-                    if (state.getPropertyKeys().contains(BlockCable.NEG_Y)) nY = state.getValue(BlockCable.NEG_Y);
-                    if (state.getPropertyKeys().contains(BlockCable.POS_Z)) pZ = state.getValue(BlockCable.POS_Z);
-                    if (state.getPropertyKeys().contains(BlockCable.NEG_Z)) nZ = state.getValue(BlockCable.NEG_Z);
-                } catch (Exception ignored) {}
-            }
-            int mask = (pX ? 1 : 0)
-                    | (nX ? 2 : 0)
-                    | (pY ? 4 : 0)
-                    | (nY ? 8 : 0)
-                    | (pZ ? 16 : 0)
-                    | (nZ ? 32 : 0);
-
-            List<BakedQuad> quads = cacheByMask.get(mask);
-            if (quads != null) return quads;
-
-            quads = buildWorldQuads(pX, nX, pY, nY, pZ, nZ);
-            cacheByMask.put(mask, quads);
-            return quads;
-        } else {
+        if (!forBlock) {
             if (itemQuads == null) {
                 itemQuads = buildItemQuads();
             }
             return itemQuads;
         }
+
+        boolean pX = false, nX = false, pY = false, nY = false, pZ = false, nZ = false;
+
+        if (state != null) {
+            try {
+                pX = state.getValue(BlockCable.POS_X);
+                nX = state.getValue(BlockCable.NEG_X);
+                pY = state.getValue(BlockCable.POS_Y);
+                nY = state.getValue(BlockCable.NEG_Y);
+                pZ = state.getValue(BlockCable.POS_Z);
+                nZ = state.getValue(BlockCable.NEG_Z);
+            } catch (Exception ignored) {
+            }
+        }
+        int mask = (pX ? 1 : 0) | (nX ? 2 : 0) | (pY ? 4 : 0) | (nY ? 8 : 0) | (pZ ? 16 : 0) | (nZ ? 32 : 0);
+        List<BakedQuad> quads = cache[mask];
+        if (quads != null) return quads;
+
+        quads = buildWorldQuads(pX, nX, pY, nY, pZ, nZ);
+        return cache[mask] = quads;
     }
 
     private List<BakedQuad> buildWorldQuads(boolean pX, boolean nX, boolean pY, boolean nY, boolean pZ, boolean nZ) {

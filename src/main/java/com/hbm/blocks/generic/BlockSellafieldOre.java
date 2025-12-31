@@ -88,6 +88,12 @@ public class BlockSellafieldOre extends BlockSellafieldSlaked implements ICustom
 
     @Override
     @SideOnly(Side.CLIENT)
+    public void registerModel() {
+        ((IModelRegister) Item.getItemFromBlock(this)).registerModels();
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
     public void registerSprite(TextureMap map) {
         for (int i = 0; i < sellafieldTextures.length; i++) {
             ResourceLocation spriteLoc = new ResourceLocation(Tags.MODID, BlockBakeFrame.ROOT_PATH + this.getRegistryName().getPath() + "_" + i);

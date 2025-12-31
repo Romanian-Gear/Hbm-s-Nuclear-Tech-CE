@@ -195,15 +195,15 @@ public class PowerCableBox extends Block implements ITileEntityProvider, ICustom
 
     @SideOnly(Side.CLIENT)
     public void registerSprite(TextureMap map) {
-        iconStraight = map.registerSprite(new ResourceLocation(Tags.MODID, "boxduct_cable_straight"));
-        iconCurveTL = map.registerSprite(new ResourceLocation(Tags.MODID, "boxduct_cable_curve_tl"));
-        iconCurveTR = map.registerSprite(new ResourceLocation(Tags.MODID, "boxduct_cable_curve_tr"));
-        iconCurveBL = map.registerSprite(new ResourceLocation(Tags.MODID, "boxduct_cable_curve_bl"));
-        iconCurveBR = map.registerSprite(new ResourceLocation(Tags.MODID, "boxduct_cable_curve_br"));
-        iconJunction = map.registerSprite(new ResourceLocation(Tags.MODID, "boxduct_cable_junction"));
+        iconStraight = map.registerSprite(new ResourceLocation(Tags.MODID, "blocks/boxduct_cable_straight"));
+        iconCurveTL = map.registerSprite(new ResourceLocation(Tags.MODID, "blocks/boxduct_cable_curve_tl"));
+        iconCurveTR = map.registerSprite(new ResourceLocation(Tags.MODID, "blocks/boxduct_cable_curve_tr"));
+        iconCurveBL = map.registerSprite(new ResourceLocation(Tags.MODID, "blocks/boxduct_cable_curve_bl"));
+        iconCurveBR = map.registerSprite(new ResourceLocation(Tags.MODID, "blocks/boxduct_cable_curve_br"));
+        iconJunction = map.registerSprite(new ResourceLocation(Tags.MODID, "blocks/boxduct_cable_junction"));
 
         for (int i = 0; i < iconEnd.length; i++) {
-            iconEnd[i] = map.registerSprite(new ResourceLocation(Tags.MODID, "boxduct_cable_end_" + i));
+            iconEnd[i] = map.registerSprite(new ResourceLocation(Tags.MODID, "blocks/boxduct_cable_end_" + i));
         }
     }
 
