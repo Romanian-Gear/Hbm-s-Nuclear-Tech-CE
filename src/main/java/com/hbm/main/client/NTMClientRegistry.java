@@ -26,7 +26,6 @@ import com.hbm.items.tool.ItemCanister;
 import com.hbm.items.tool.ItemGasCanister;
 import com.hbm.items.tool.ItemGuideBook;
 import com.hbm.items.weapon.IMetaItemTesr;
-import com.hbm.items.weapon.ItemAmmoArty;
 import com.hbm.items.weapon.sedna.ItemGunBaseNT;
 import com.hbm.main.MainRegistry;
 import com.hbm.main.ResourceManager;
@@ -529,6 +528,8 @@ public class NTMClientRegistry {
         swapModels(ModItems.ammo_himars, reg);
         swapModels(ModItems.jetpack_glider, reg);
         swapModels(ModItems.gear_large, reg);
+
+        swapModels(Item.getItemFromBlock(ModBlocks.boat), reg);
 
         for (Item item : ItemGunBaseNT.INSTANCES) {
             swapModelsNoFPV(item, reg);

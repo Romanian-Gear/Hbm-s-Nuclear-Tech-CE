@@ -49,6 +49,7 @@ import com.hbm.render.anim.sedna.BusAnimationSedna;
 import com.hbm.render.anim.sedna.BusAnimationSequenceSedna;
 import com.hbm.render.anim.sedna.HbmAnimationsSedna;
 import com.hbm.render.entity.ElectricityRenderer;
+import com.hbm.render.entity.RenderBoat;
 import com.hbm.render.entity.RenderMetaSensitiveItem;
 import com.hbm.render.item.ItemRenderMissile;
 import com.hbm.render.item.ItemRenderMissileGeneric;
@@ -1839,6 +1840,9 @@ public class ClientProxy extends ServerProxy {
                 }
             }
         }
+
+        // IItemRendererProvider is not applicable to Render<T extends Entity>
+        Item.getItemFromBlock(ModBlocks.boat).setTileEntityItemStackRenderer(new RenderBoat.BoatItemRenderer());
     }
 
     @Deprecated
